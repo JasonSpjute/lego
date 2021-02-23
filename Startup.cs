@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using lego.Repositories;
+using lego.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using MySqlConnector;
 
 namespace lego
 {
@@ -30,8 +34,20 @@ namespace lego
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
+                services.AddTransient<BricksService>();
+                services.AddTransient<KitsService>();
+                services.AddTransient<BricksRepository>();
+                services.AddTransient<KitsRepository>();
+
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "lego", Version = "v1" });
+
+                services.AddScoped<IDbConnection>(x => CreateDbConnection());
             });
+        }
+        private IDbConnection CreateDbConnection()
+        {
+            string connectString = Configuration["db:gearhost"];
+            return new MySqlConnection(connectString);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
